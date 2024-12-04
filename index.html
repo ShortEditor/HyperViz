@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dimensional Shapes Visualization</title>
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #2a2a2a;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            justify-content: space-between;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .social-icons {
+            display: flex;
+            gap: 15px;
+        }
+        .social-icons a {
+            color: #4CAF50;
+            font-size: 24px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .social-icons a:hover {
+            color: #45a049;
+        }
+        .description {
+            text-align: center;
+            padding: 20px;
+            background-color: #2a2a2a;
+            margin: 20px;
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+        .description p {
+            margin: 5px 0;
+            color: #aaa;
+        }
+        .view-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #357a38;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #4CAF50;
+        }
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+        .toggle-label {
+            color: #aaa;
+            font-size: 14px;
+        }
+        .about-me {
+            text-align: center;
+            padding: 30px;
+            background-color: #2a2a2a;
+            margin: 40px auto;
+            border-radius: 10px;
+            line-height: 1.6;
+            max-width: 800px;
+        }
+        .about-me h2 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            opacity: 0;
+            animation: fadeSlideIn 0.8s ease forwards;
+        }
+        .about-me p {
+            color: #aaa;
+            margin: 15px 0;
+            font-size: 16px;
+            line-height: 1.8;
+            opacity: 0;
+        }
+        .about-me p:nth-child(2) { animation: fadeSlideIn 0.8s ease forwards 0.3s; }
+        .about-me p:nth-child(3) { animation: fadeSlideIn 0.8s ease forwards 0.6s; }
+        .about-me p:nth-child(4) { animation: fadeSlideIn 0.8s ease forwards 0.9s; }
+        .about-me .highlight {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .typing-text {
+            display: inline-block;
+            border-right: 2px solid #4CAF50;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 0;
+            animation: typing 1s steps(6, end) forwards,
+                       blink 0.75s step-end infinite;
+            animation-delay: 0.2s;
+            position: relative;
+            margin-right: 5px;
+            transform: translateY(7px);
+            padding-right: 3px;
+        }
+        .role-text {
+            display: inline-block;
+            position: relative;
+            min-width: 180px;
+            height: 24px;
+            text-align: left;
+            margin-left: 8px;
+            transform: translateY(5px);
+        }
+        .role-text::after {
+            content: '';
+            animation: roles 8s linear infinite;
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+            width: 100%;
+            text-align: left;
+            top: 2px;
+            letter-spacing: 0.2px;
+        }
+        .social-links {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            opacity: 0;
+            animation: fadeSlideIn 0.8s ease forwards 1.2s;
+        }
+        .social-links a {
+            color: #4CAF50;
+            font-size: 24px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .social-links a:hover {
+            color: #45a049;
+        }
+        .highlight-container {
+            display: inline-block;
+            position: relative;
+        }
+        .highlight-container::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #4CAF50;
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.3s ease;
+        }
+        .highlight-container:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+        .logo {
+            height: 50px;
+            width: auto;
+        }
+        .app-name {
+            margin-left: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+            gap: 20px;
+        }
+        .dimension-box {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            width: 400px;
+            height: 450px;
+            position: relative;
+        }
+        .dimension-title {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 1;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+        .shape-selector {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
+            background: #333;
+            color: white;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
+        }
+        .shape-selector option {
+            background: #333;
+            color: white;
+        }
+        .instruction {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 12px;
+            color: #aaa;
+            z-index: 1;
+        }
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 5px;
+            cursor: move;
+        }
+        #controls {
+            position: relative;
+            text-align: center;
+            padding: 15px;
+            background: rgba(42, 42, 42, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        #controls.sticky {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+        #controls.above-about {
+            position: absolute;
+            bottom: auto;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #controls button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        #controls button:hover {
+            background: #45a049;
+        }
+        @keyframes fadeSlideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes blink {
+            from, to { border-color: transparent }
+            50% { border-color: #4CAF50 }
+        }
+        @keyframes roles {
+            0%, 18% { content: 'physics enthusiast'; }
+            25%, 43% { content: 'web developer'; }
+            50%, 68% { content: '3D artist'; }
+            75%, 93% { content: 'AI Artist'; }
+            95%, 100% { content: 'physics enthusiast'; }
+        }
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 6.2ch }
+        }
+        
+        /* Enhanced Mobile Responsive Styles */
+        @media screen and (max-width: 768px) {
+            body {
+                font-size: 14px;
+                background: #1a1a1a;
+                padding-bottom: 90px;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .header {
+                padding: 12px 15px;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+                backdrop-filter: blur(10px);
+            }
+
+            .app-name {
+                font-size: 20px;
+            }
+
+            .container {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                padding: 10px;
+                margin-bottom: 70px;
+            }
+
+            .dimension-box {
+                width: 100%;
+                margin: 0;
+                padding: 20px;
+                height: auto;
+                min-height: 350px;
+                background: #2a2a2a;
+                border-radius: 16px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+                transition: transform 0.2s ease;
+            }
+
+            .dimension-box:active {
+                transform: scale(0.98);
+            }
+
+            .dimension-title {
+                font-size: 1.3rem;
+                font-weight: bold;
+                margin-bottom: 15px;
+                color: #4CAF50;
+                text-shadow: none;
+                position: relative;
+                top: 0;
+                left: 0;
+            }
+
+            .shape-selector {
+                width: 100%;
+                padding: 15px;
+                margin: 10px 0;
+                background: #1a1a1a;
+                border: 2px solid #4CAF50;
+                border-radius: 12px;
+                color: white;
+                font-size: 16px;
+                position: relative;
+                top: 0;
+                right: 0;
+                -webkit-appearance: none;
+                appearance: none;
+            }
+
+            .shape-selector:focus {
+                outline: none;
+                border-color: #45a049;
+                box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+            }
+
+            .instruction {
+                font-size: 0.95rem;
+                color: #aaa;
+                margin: 12px 0;
+                position: relative;
+                bottom: 0;
+                left: 0;
+            }
+
+            canvas, #canvas3D, #canvas4D, #canvas5D {
+                width: 100% !important;
+                height: 280px !important;
+                border-radius: 12px;
+                background: #1a1a1a;
+                margin-top: 15px;
+                touch-action: none;
+            }
+
+            #controls {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                padding: 15px;
+                background: rgba(26, 26, 26, 0.95);
+                backdrop-filter: blur(10px);
+                display: flex;
+                gap: 12px;
+                justify-content: center;
+                z-index: 1000;
+                border-top: 1px solid rgba(76, 175, 80, 0.2);
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            button {
+                flex: 1;
+                max-width: 150px;
+                padding: 14px 12px;
+                background: rgba(76, 175, 80, 0.1);
+                border: 2px solid #4CAF50;
+                border-radius: 12px;
+                color: #4CAF50;
+                font-weight: 600;
+                font-size: 14px;
+                transition: all 0.2s ease;
+                touch-action: manipulation;
+            }
+
+            button:active {
+                background: #4CAF50;
+                color: white;
+                transform: scale(0.96);
+            }
+
+            .toggle-switch {
+                position: fixed;
+                bottom: 100px;
+                right: 15px;
+                background: rgba(26, 26, 26, 0.9);
+                padding: 12px;
+                border-radius: 50%;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                backdrop-filter: blur(10px);
+                z-index: 900;
+            }
+
+            .about-me {
+                margin: 15px;
+                padding: 25px;
+                background: #2a2a2a;
+                border-radius: 16px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            }
+
+            .about-me h2 {
+                font-size: 1.6rem;
+                margin-bottom: 20px;
+            }
+
+            .about-me p {
+                font-size: 15px;
+                line-height: 1.7;
+            }
+
+            .social-links {
+                display: flex;
+                justify-content: center;
+                gap: 25px;
+                margin-top: 25px;
+                padding: 10px 0;
+            }
+
+            .social-links a {
+                color: #4CAF50;
+                font-size: 26px;
+                padding: 10px;
+            }
+
+            .social-links a:active {
+                transform: scale(0.92);
+            }
+
+            /* Improved touch targets and accessibility */
+            button, select, .toggle-switch, .social-links a {
+                min-height: 48px;
+                min-width: 48px;
+                touch-action: manipulation;
+            }
+
+            /* Prevent text selection during touch */
+            * {
+                -webkit-user-select: none;
+                user-select: none;
+            }
+
+            /* Allow text selection in specific areas */
+            p, h1, h2, h3, .instruction {
+                -webkit-user-select: text;
+                user-select: text;
+            }
+
+            /* Smooth scrolling */
+            html {
+                scroll-behavior: smooth;
+                overflow-x: hidden;
+            }
+
+            /* Loading state for canvas */
+            canvas.loading {
+                opacity: 0.7;
+                transition: opacity 0.3s ease;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Add control panel toggle for mobile -->
+    <div class="control-panel-toggle">Controls ▲</div>
+    <div class="header">
+        <div class="header-left">
+            <img src="https://i.postimg.cc/zGsFT4MZ/1685668637841.png" alt="Logo" class="logo">
+            <div class="app-name">HyperViz</div>
+        </div>
+        <div class="header-right">
+            <div class="social-icons">
+                <a href="https://www.youtube.com/@Shorteditor" target="_blank" title="Visit our YouTube channel">
+                    <i class="fab fa-youtube"></i>
+                </a>
+                <a href="https://www.instagram.com/short_editor/" target="_blank" title="Follow us on Instagram">
+                    <i class="fab fa-instagram"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="description">
+        <p>Explore geometric shapes across different dimensions, from 1D to 5D.</p>
+        <p>Visualize how objects transform and interact as they move through dimensional space.</p>
+        <div class="view-controls">
+            <span class="toggle-label">Solid</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="viewModeToggle">
+                <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label">Wireframe</span>
+        </div>
+    </div>
+    <div class="container">
+        <div class="dimension-box">
+            <div class="dimension-title">1D (Line)</div>
+            <select class="shape-selector" id="shape1D">
+                <option value="line">Line</option>
+                <option value="point">Point</option>
+                <option value="dash">Dashed Line</option>
+                <option value="human">Human</option>
+            </select>
+            <div class="instruction">Click and drag horizontally to move</div>
+            <canvas id="canvas1D"></canvas>
+        </div>
+        <div class="dimension-box">
+            <div class="dimension-title">2D (Shapes)</div>
+            <select class="shape-selector" id="shape2D">
+                <option value="square">Square</option>
+                <option value="circle">Circle</option>
+                <option value="triangle">Triangle</option>
+                <option value="pentagon">Pentagon</option>
+                <option value="star">Star</option>
+                <option value="human">Human</option>
+            </select>
+            <div class="instruction">Click and drag to rotate</div>
+            <canvas id="canvas2D"></canvas>
+        </div>
+        <div class="dimension-box">
+            <div class="dimension-title">3D (Solids)</div>
+            <select class="shape-selector" id="shape3D">
+                <option value="cube">Cube</option>
+                <option value="sphere">Sphere</option>
+                <option value="cylinder">Cylinder</option>
+                <option value="cone">Cone</option>
+                <option value="torus">Torus</option>
+                <option value="pyramid">Pyramid</option>
+                <option value="human">Human</option>
+            </select>
+            <div class="instruction">Click and drag to rotate, scroll to zoom</div>
+            <div id="canvas3D"></div>
+        </div>
+        <div class="dimension-box">
+            <div class="dimension-title">4D (Tesseract)</div>
+            <select class="shape-selector" id="shape4D">
+                <option value="tesseract">Tesseract</option>
+                <option value="hypersphere">Hypersphere</option>
+                <option value="duocylinder">Duocylinder</option>
+                <option value="human">Human</option>
+            </select>
+            <div class="instruction">Click and drag to rotate, scroll to zoom</div>
+            <div id="canvas4D"></div>
+        </div>
+        <div class="dimension-box">
+            <div class="dimension-title">5D (Penteract)</div>
+            <select class="shape-selector" id="shape5D">
+                <option value="penteract">Penteract</option>
+                <option value="hyperhypersphere">5D Sphere</option>
+                <option value="hyperduocylinder">5D Cylinder</option>
+                <option value="human">Human</option>
+            </select>
+            <div class="instruction">Click and drag to rotate, scroll to zoom</div>
+            <div id="canvas5D"></div>
+        </div>
+    </div>
+    <div id="controls">
+        <button id="resetBtn" data-action="resetViews">Reset View</button>
+        <button id="toggleBtn" data-action="toggleRotation">Toggle Auto-Rotation</button>
+    </div>
+    <div class="about-me">
+        <h2>About the Creator</h2>
+        <p>Hi, I'm <span class="highlight typing-text">Ganesh</span></p>
+        <p>I'm a <span class="role-text"></span></p>
+        <p>With a background in <span class="highlight-container">Computer Science and Engineering</span>, I take great pleasure in transforming complex concepts, like <span class="highlight-container">higher dimensions</span>, into engaging visuals and interactive projects.</p>
+        <p>Let's connect and explore the endless possibilities where <span class="highlight-container">art</span>, <span class="highlight-container">science</span>, and <span class="highlight-container">technology</span> meet!</p>
+        <div class="social-links">
+            <a href="https://www.youtube.com/@Shorteditor" target="_blank" title="YouTube">
+                <i class="fab fa-youtube"></i>
+            </a>
+            <a href="https://www.instagram.com/short_editor/" target="_blank" title="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
